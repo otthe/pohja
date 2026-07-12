@@ -56,11 +56,16 @@ build_attrs([{Key, Value} | T], String) ->
 e(Tag, Attrs, Content) ->
     Tag1 = atom_to_binary(Tag),
     TagOpen = case Attrs of
-        [] -> <<"<", Tag1/binary, ">">>;
-        N when is_list(N) -> build_attrs(Attrs);
-        _ -> error
+        [] -> 
+            <<"<", Tag1/binary, ">">>;
+        N when is_list(N) -> 
+            Str = build_attrs(Attrs),
+            <<"<", Tag1/binary, Str/binary, ">">>;
+        _ -> 
+            error
     end,
-    TagClose = <<"</", Tag1/binary, ">">>.
+    TagClose = <<"</", Tag1/binary, ">">>,
+    <<TagOpen/binary, Content/binary, TagClose/binary >>.
 
     % TagOpen = <<"<", atom_to_binary(Tag), ">">>.
 
@@ -77,4 +82,6 @@ test() ->
     ),
     Body = <<"Hello">>,
     %file:write_file("dump.html", html(Head, Body)),
-    file:write_file("dump2.html", build_attrs([{src, "index.js"}, {version, 1}])).
+    %file:write_file("dump2.html", build_attrs([{src, "index.js"}, {version, 1}])).
+    Output = e(script, [{src, "index.js"}, {version, 1}], <<"alert('hello!')">>),
+    file:write_file("dump2.html", Output).
