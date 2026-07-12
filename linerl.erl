@@ -62,21 +62,19 @@ tag_open(Tag, Attrs) ->
         [] -> 
             <<"<", Tag/binary, ">">>;
         N when is_list(N) -> 
-            Str = attrs_str(Attrs),
-            <<"<", Tag/binary, Str/binary, ">">>;
+            <<"<", Tag/binary, (attrs_str(Attrs))/binary, ">">>;
         _ -> 
             error
     end.
 
 el(Tag) ->
-    TagOpen = atom_to_binary(Tag),
-    <<"<", TagOpen/binary, ">">>.
+    <<"<", (atom_to_binary(Tag))/binary, ">">>.
 el(Tag, Attrs) ->
-    hello.
-
+    Tag1 = tag_to_bin(Tag),
+    iolist_to_binary([tag_open(Tag1, Attrs)]).
 el(Tag, Attrs, Content) ->
     Tag1 = tag_to_bin(Tag),
-    <<(tag_open(Tag1, Attrs))/binary, (content_to_bin(Content))/binary, "</", Tag1/binary, ">" >>.
+    iolist_to_binary([tag_open(Tag1, Attrs), content_to_bin(Content), "</", Tag1, ">"]).
 
 iter(Els) ->
     iter(Els, <<>>).
@@ -90,6 +88,22 @@ html(Head, Body) ->
     html_head(iter(Head)) ++
     html_body(iter(Body)) ++
     <<"</html>">>.
+
+bench(N) ->
+    {Time, _} =
+        timer:tc(
+            fun() ->
+                lists:foreach(
+                    fun(_) ->
+                        test()
+                    end,
+                    lists:seq(1, N)
+                )
+            end
+        ),
+
+    io:format("~p us total~n", [Time]),
+    io:format("~p us/op~n", [Time / N]).
 
 test() ->
     List = [
@@ -117,15 +131,8 @@ test() ->
                 {type, "checkbox"},
                 {checked, true}
             ], []),
-            el(script, [], [esc("alert(\"I am evil script!\")")])
+            %el(script, [], [esc("alert(\"I am evil script!\")")]),
+            el(input, [{type, "text"}, {value, "hello"}])
         ]
-    ),    
-    file:write_file("dump2.html", Output).
-
-        % el(script, [{src, "index.js"}, {version, 1}], list_to_binary("alert('world!')"))
-
-
-            % el(div, [{class, container}, {style, "background-color: black;"}], [])
-
-
-        %el(script, [{version, 1}], list_to_binary("alert('world!')"))
+    ).    
+    %file:write_file("dump2.html", Output).
