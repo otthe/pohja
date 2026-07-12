@@ -13,16 +13,16 @@ esc_char(Other) -> Other.
 
 html_head(Head) ->
     [
-        <<"<!DOCTYPE html>">>,
-        <<"<html lang=\"en\">">>,
-        <<"<head>">>,
-        <<"<meta charset=\"UTF-8\">">>,
-        <<"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">">>,
+        "<!DOCTYPE html>",
+        "<html lang=\"en\">",
+        "<head>",
+        "<meta charset=\"UTF-8\">",
+        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">",
         Head,
-        <<"</head>">>
+        "</head>"
     ].
 html_body(Body) ->
-    [<<"<body>">>, Body, <<"</body>">>].
+    ["<body>", Body, "</body>"].
 
 attrs_str(Attrs) ->
     attrs_str(Attrs, <<>>).
@@ -33,7 +33,7 @@ attrs_str([{Key, Val} | T], Str) ->
     Val1 = case Val of
         N when is_integer(N) -> integer_to_binary(Val);
         N when is_atom(N) -> atom_to_binary(Val);
-        N when is_list(N) -> list_to_binary(Val);
+        N when is_list(N) -> unicode:characters_to_binary(Val);
         N when is_float(N) -> float_to_binary(Val);
         _ -> Val
     end,
@@ -54,15 +54,15 @@ content_to_bin(Content) ->
     case Content of
         [] -> <<"">>;
         _ when is_binary(Content) -> Content;
-        _ -> list_to_binary(Content)
+        _ -> unicode:characters_to_binary(Content)
     end.
 
 tag_open(Tag, Attrs) ->
     case Attrs of
         [] -> 
-            <<"<", Tag/binary, ">">>;
-        N when is_list(N) -> 
-            <<"<", Tag/binary, (attrs_str(Attrs))/binary, ">">>;
+            ["<", Tag, ">"];
+        N when is_list(N) ->
+            ["<", Tag, attrs_str(Attrs), ">"]; 
         _ -> 
             error
     end.
@@ -71,24 +71,24 @@ el(Tag) ->
     <<"<", (atom_to_binary(Tag))/binary, ">">>.
 el(Tag, Attrs) ->
     Tag1 = tag_to_bin(Tag),
-    iolist_to_binary([tag_open(Tag1, Attrs)]).
+    [tag_open(Tag1, Attrs)].
 el(Tag, Attrs, Content) ->
     Tag1 = tag_to_bin(Tag),
-    iolist_to_binary([tag_open(Tag1, Attrs), content_to_bin(Content), "</", Tag1, ">"]).
+    [tag_open(Tag1, Attrs), content_to_bin(Content), "</", Tag1, ">"].
 
 iter(Els) ->
     iter(Els, <<>>).
 iter([], Str) ->
     Str;
 iter([H|T], Str) ->
-    NewStr = <<Str/binary, H/binary>>,
-    iter(T, NewStr).
+    iter(T, [Str, H]).
 
 html(Head, Body) ->
-    html_head(iter(Head)) ++
-    html_body(iter(Body)) ++
-    <<"</html>">>.
-
+    iolist_to_binary([
+        html_head(iter(Head)),
+        html_body(iter(Body)),
+        "</html>"
+    ]).
 bench(N) ->
     {Time, _} =
         timer:tc(
@@ -114,7 +114,7 @@ test() ->
     Output = 
     html(
         [
-            el(meta, [{version, 7}], []),
+            el(meta, [{version, 7}]),
             el(title, [], <<"My Blog!">>)
         ],
         [
@@ -123,7 +123,7 @@ test() ->
             el(hr),
             el(ul, [], lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List)),
             el(form, [{method, "POST"}, {action, "/blog/new"}], [
-                el(input, [{name, "title"}], []),
+                el(input, [{name, "title"}]),
                 el(br),
                 el(button, [{type, "submit"}], [<<"Submit">>])
             ]),
@@ -132,7 +132,8 @@ test() ->
                 {checked, true}
             ], []),
             %el(script, [], [esc("alert(\"I am evil script!\")")]),
-            el(input, [{type, "text"}, {value, "hello"}])
+            el(input, [{type, "text"}, {value, "hello"}]),
+            el(h1, [], ["Sehän toimii! :D"])
         ]
-    ).    
-    %file:write_file("dump2.html", Output).
+    ),    
+    file:write_file("dump2.html", Output).
