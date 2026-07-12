@@ -1,25 +1,6 @@
 -module(linerl).
 -compile(export_all).
 
-% html(
-%     {
-%         e(title, {}, {"My Blog"}),
-%         e(script, [{src, "index.js"}], []),
-%     },
-%     {
-%         e(ul, {"class='list'"},
-%             {
-%                 e(li, [], [])
-%             }
-%         )
-%     }
-% )
-
-% io_lib:format(
-%     "<meta name=~p content=~p>",
-%     ["viewport", "width=device-width, initial-scale=1.0"]
-% ).
-
 html_head(Head) ->
     [
         <<"<!DOCTYPE html>">>,
@@ -39,22 +20,31 @@ html_body(Body) ->
 
 build_attrs(Attrs) ->
     build_attrs(Attrs, <<>>).
-build_attrs([], String) ->
-    String;
-build_attrs([{Key, Value} | T], String) ->
+build_attrs([], Str) ->
+    Str;
+build_attrs([{Key, Val} | T], Str) ->
     Key1 = atom_to_binary(Key),
-    Value1 = case Value of
-        N when is_integer(N) -> integer_to_binary(Value);
-        N when is_atom(N) -> atom_to_binary(Value);
-        N when is_list(N) -> list_to_binary(Value);
-        _ -> Value
+    Val1 = case Val of
+        N when is_integer(N) -> integer_to_binary(Val);
+        N when is_atom(N) -> atom_to_binary(Val);
+        N when is_list(N) -> list_to_binary(Val);
+        N when is_float(N) -> float_to_binary(Val);
+        _ -> Val
     end,
-    Attr = <<"\s", Key1/binary, "=\"", Value1/binary, "\"">>,
-    NewString = <<String/binary, Attr/binary>>,
-    build_attrs(T, NewString).
+    Attr = <<"\s", Key1/binary, "=\"", Val1/binary, "\"">>,
+    NewStr = <<Str/binary, Attr/binary>>,
+    build_attrs(T, NewStr).
 
-e(Tag, Attrs, Content) ->
-    Tag1 = atom_to_binary(Tag),
+el(Tag) ->
+    TagOpen = atom_to_binary(Tag),
+    <<"<", TagOpen/binary, ">">>.
+el(Tag, Attrs, Content) ->
+    %Tag1 = atom_to_binary(Tag),
+    Tag1 = case Tag of
+        % for taken keywords like "div"; we must use hacks like these...
+        (d) -> <<"div">>;
+        (_) -> atom_to_binary(Tag)
+    end,
     TagOpen = case Attrs of
         [] -> 
             <<"<", Tag1/binary, ">">>;
@@ -64,24 +54,46 @@ e(Tag, Attrs, Content) ->
         _ -> 
             error
     end,
+    Content1 = case Content of
+        [] -> <<"">>;
+        _ when is_binary(Content) -> Content;
+        _ -> list_to_binary(Content)
+    end,
     TagClose = <<"</", Tag1/binary, ">">>,
-    <<TagOpen/binary, Content/binary, TagClose/binary >>.
+    <<TagOpen/binary, Content1/binary, TagClose/binary >>.
 
-    % TagOpen = <<"<", atom_to_binary(Tag), ">">>.
+iter(Els) ->
+    iter(Els, <<>>).
+iter([], Str) ->
+    Str;
+iter([H|T], Str) ->
+    NewStr = <<Str/binary, H/binary>>,
+    iter(T, NewStr).
 
 html(Head, Body) ->
-    html_head(Head) ++
-    html_body(Body) ++
-    <<"</html">>.
-
+    html_head(iter(Head)) ++
+    html_body(iter(Body)) ++
+    <<"</html>">>.
 
 test() ->
-    Head = io_lib:format(
-        "<meta name=~p content=~p>",
-        ["viewport", "width=device-width, initial-scale=1.0"]
-    ),
-    Body = <<"Hello">>,
-    %file:write_file("dump.html", html(Head, Body)),
-    %file:write_file("dump2.html", build_attrs([{src, "index.js"}, {version, 1}])).
-    Output = e(script, [{src, "index.js"}, {version, 1}], <<"alert('hello!')">>),
+    Output = 
+    html(
+        [
+            el(meta, [{version, 7}], []),
+            el(title, [], <<"My Blog!">>)
+        ],
+        [
+            el(d, [], [<<"Hello friends">>]),
+            el(br),
+            el(hr)
+        ]
+    ),    
     file:write_file("dump2.html", Output).
+
+        % el(script, [{src, "index.js"}, {version, 1}], list_to_binary("alert('world!')"))
+
+
+            % el(div, [{class, container}, {style, "background-color: black;"}], [])
+
+
+        %el(script, [{version, 1}], list_to_binary("alert('world!')"))
