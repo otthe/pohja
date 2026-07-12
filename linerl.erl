@@ -1,6 +1,16 @@
 -module(linerl).
 -compile(export_all).
 
+%https://ssojet.com/escaping/html-escaping-in-erlang#escaping-html-special-characters
+esc(String) ->
+    lists:flatten([esc_char(C) || C <- String]).
+esc_char($<) -> "&lt;";
+esc_char($>) -> "&gt;";
+esc_char($") -> "&quot;";
+esc_char($') -> "&apos;";
+esc_char($&) -> "&amp;";
+esc_char(Other) -> Other.
+
 html_head(Head) ->
     [
         <<"<!DOCTYPE html>">>,
@@ -12,17 +22,13 @@ html_head(Head) ->
         <<"</head>">>
     ].
 html_body(Body) ->
-    [
-        <<"<body>">>,
-        Body,
-        <<"</body>">>
-    ].
+    [<<"<body>">>, Body, <<"</body>">>].
 
-build_attrs(Attrs) ->
-    build_attrs(Attrs, <<>>).
-build_attrs([], Str) ->
+attrs_str(Attrs) ->
+    attrs_str(Attrs, <<>>).
+attrs_str([], Str) ->
     Str;
-build_attrs([{Key, Val} | T], Str) ->
+attrs_str([{Key, Val} | T], Str) ->
     Key1 = atom_to_binary(Key),
     Val1 = case Val of
         N when is_integer(N) -> integer_to_binary(Val);
@@ -33,36 +39,44 @@ build_attrs([{Key, Val} | T], Str) ->
     end,
     Attr = <<"\s", Key1/binary, "=\"", Val1/binary, "\"">>,
     NewStr = <<Str/binary, Attr/binary>>,
-    build_attrs(T, NewStr).
+    attrs_str(T, NewStr).
 
-el(Tag) ->
-    TagOpen = atom_to_binary(Tag),
-    <<"<", TagOpen/binary, ">">>.
-el(Tag, Attrs, Content) ->
-    %Tag1 = atom_to_binary(Tag),
-    Tag1 = case Tag of
+tag_to_bin(Tag) ->
+    case Tag of
         % for taken keywords like "div"; we must use hacks like these...
         (d) -> <<"div">>;
         (dv) -> <<"div">>;
         (div_) -> <<"div">>;
         (_) -> atom_to_binary(Tag)
-    end,
-    TagOpen = case Attrs of
-        [] -> 
-            <<"<", Tag1/binary, ">">>;
-        N when is_list(N) -> 
-            Str = build_attrs(Attrs),
-            <<"<", Tag1/binary, Str/binary, ">">>;
-        _ -> 
-            error
-    end,
-    Content1 = case Content of
+    end.
+
+content_to_bin(Content) ->
+    case Content of
         [] -> <<"">>;
         _ when is_binary(Content) -> Content;
         _ -> list_to_binary(Content)
-    end,
-    TagClose = <<"</", Tag1/binary, ">">>,
-    <<TagOpen/binary, Content1/binary, TagClose/binary >>.
+    end.
+
+tag_open(Tag, Attrs) ->
+    case Attrs of
+        [] -> 
+            <<"<", Tag/binary, ">">>;
+        N when is_list(N) -> 
+            Str = attrs_str(Attrs),
+            <<"<", Tag/binary, Str/binary, ">">>;
+        _ -> 
+            error
+    end.
+
+el(Tag) ->
+    TagOpen = atom_to_binary(Tag),
+    <<"<", TagOpen/binary, ">">>.
+el(Tag, Attrs) ->
+    hello.
+
+el(Tag, Attrs, Content) ->
+    Tag1 = tag_to_bin(Tag),
+    <<(tag_open(Tag1, Attrs))/binary, (content_to_bin(Content))/binary, "</", Tag1/binary, ">" >>.
 
 iter(Els) ->
     iter(Els, <<>>).
@@ -93,7 +107,17 @@ test() ->
             el(d, [], [<<"Hello friends">>]),
             el(br),
             el(hr),
-            el(ul, [], lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List))
+            el(ul, [], lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List)),
+            el(form, [{method, "POST"}, {action, "/blog/new"}], [
+                el(input, [{name, "title"}], []),
+                el(br),
+                el(button, [{type, "submit"}], [<<"Submit">>])
+            ]),
+            el(input, [
+                {type, "checkbox"},
+                {checked, true}
+            ], []),
+            el(script, [], [esc("alert(\"I am evil script!\")")])
         ]
     ),    
     file:write_file("dump2.html", Output).
