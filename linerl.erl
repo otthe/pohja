@@ -43,6 +43,8 @@ el(Tag, Attrs, Content) ->
     Tag1 = case Tag of
         % for taken keywords like "div"; we must use hacks like these...
         (d) -> <<"div">>;
+        (dv) -> <<"div">>;
+        (div_) -> <<"div">>;
         (_) -> atom_to_binary(Tag)
     end,
     TagOpen = case Attrs of
@@ -76,6 +78,11 @@ html(Head, Body) ->
     <<"</html>">>.
 
 test() ->
+    List = [
+        {1,"Blog Post 1"},
+        {2,"Blog Post 2"},
+        {3,"Blog Post 3"}
+    ],
     Output = 
     html(
         [
@@ -85,7 +92,8 @@ test() ->
         [
             el(d, [], [<<"Hello friends">>]),
             el(br),
-            el(hr)
+            el(hr),
+            el(ul, [], lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List))
         ]
     ),    
     file:write_file("dump2.html", Output).
