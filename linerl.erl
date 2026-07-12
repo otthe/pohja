@@ -53,7 +53,7 @@ tag_to_bin(Tag) ->
 content_to_bin(Content) ->
     case Content of
         [] -> <<"">>;
-        _ when is_binary(Content) -> Content;
+        _ when is_binary(Content) -> unicode:characters_to_binary(Content);
         _ -> unicode:characters_to_binary(Content)
     end.
 
@@ -118,22 +118,19 @@ test() ->
             el(title, [], <<"My Blog!">>)
         ],
         [
-            el(d, [], [<<"Hello friends">>]),
-            el(br),
-            el(hr),
-            el(ul, [], lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List)),
-            el(form, [{method, "POST"}, {action, "/blog/new"}], [
-                el(input, [{name, "title"}]),
+            el(d, [{class, container}], [
+                el(h1, [], ["My Blog!"]),
+                el(hr),
                 el(br),
-                el(button, [{type, "submit"}], [<<"Submit">>])
+                el(ul, [], lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List)),
+                el(form, [{method, "POST"}, {action, "/blog/new"}], [
+                    el(input, [{name, "title"}]),
+                    el(br),
+                    el(button, [{type, "submit"}], [<<"Submit">>])
+                ]),
+                el(p, [], [esc("<script>alert(\"I am evil script!\")</script>")])
             ]),
-            el(input, [
-                {type, "checkbox"},
-                {checked, true}
-            ], []),
-            %el(script, [], [esc("alert(\"I am evil script!\")")]),
-            el(input, [{type, "text"}, {value, "hello"}]),
-            el(h1, [], ["Sehän toimii! :D"])
+            el(script, [{src, "index.js"}, {type, module}], [])
         ]
     ),    
     file:write_file("dump2.html", Output).
