@@ -1,0 +1,14 @@
+
+html(
+    {
+        e(title, {}, {"My Blog"}),
+        e(script, [{src, "index.js"}], []),
+    },
+    {
+        e(ul, {"class='list'"},
+            {
+                e(li, [], [])
+            }
+        )
+    }
+)

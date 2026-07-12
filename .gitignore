@@ -1,0 +1,5 @@
+*.beam
+*.html
+.env
+node_modules
+dump.txt
