@@ -5,6 +5,7 @@
         {2,"Blog Post 2"},
         {3,"Blog Post 3"}
     ],
+    IsAdmin = true,
     html(
         [
             el(meta, [{version, 7}]),
@@ -24,7 +25,10 @@
                     el(br),
                     el(button, [{type, "submit"}], [<<"Submit">>])
                 ]),
-                el(p, [], [esc("<script>alert(\"I am evil script!\")</script>")])
+                el(p, [], [esc("<script>alert(\"I am evil script!\")</script>")]),
+                if IsAdmin -> el(p, [], "This user is admin");
+                    true -> el(p, [], "This user is not admin!")
+                end
             ]),
             el(script, [{src, "index.js"}, {type, module}], [])
         ]
