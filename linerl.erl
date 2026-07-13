@@ -116,7 +116,7 @@ test() ->
         {2,"Blog Post 2"},
         {3,"Blog Post 3"}
     ],
-    IsAdmin = false,
+    IsAdmin = true,
     Output = 
     html(
         [
@@ -139,8 +139,11 @@ test() ->
                     el(button, [{type, "submit"}], [<<"Submit">>])
                 ]),
                 el(p, [], [esc("<script>alert(\"I am evil script!\")</script>")]),
-                if IsAdmin -> el(p, [], "This user is admin");
-                    true -> el(p, [], "This user is not admin!")
+                case IsAdmin of
+                    true ->
+                        el(p, [], "This user is admin");
+                    false ->
+                        el(p, [], "This user is not admin!")
                 end
             ]),
             el(script, [{src, "index.js"}, {type, module}], [])
