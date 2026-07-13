@@ -2,8 +2,12 @@
 -compile(export_all).
 
 %https://ssojet.com/escaping/html-escaping-in-erlang#escaping-html-special-characters
-esc(String) ->
-    lists:flatten([esc_char(C) || C <- String]).
+esc(Str) when is_binary(Str) ->
+    unicode:characters_to_binary(
+        [esc_char(C) || C <- unicode:characters_to_list(Str)]
+    );
+esc(Str) ->
+    lists:flatten([esc_char(C) || C <- Str]).
 esc_char($<) -> "&lt;";
 esc_char($>) -> "&gt;";
 esc_char($") -> "&quot;";
@@ -42,7 +46,7 @@ attrs_str([{Key, Val} | T], Str) ->
         N when is_float(N) -> float_to_binary(Val);
         _ -> Val
     end,
-    Attr = ["\s", Key1, "=\"", Val1, "\""], %todo: fix to iolist
+    Attr = ["\s", Key1, "=\"", Val1, "\""],
     NewStr = [Str, Attr],
     attrs_str(T, NewStr).
 
@@ -134,7 +138,7 @@ test() ->
                     lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List)
                 ),
                 el(form, [{method, "POST"}, {action, "/blog/new"}], [
-                    el(input, [{name, "title"}, required]),
+                    el(input, [{name, "title"}]), %, required
                     el(br),
                     el(button, [{type, "submit"}], [<<"Submit">>])
                 ]),
