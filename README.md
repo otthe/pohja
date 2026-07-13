@@ -16,12 +16,11 @@
             el(d, [{class, container}], [
                 el(h1, [], ["My Blog!"]),
                 el(hr),
-                el(br),
                 el(ul, [], 
                     lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List)
                 ),
                 el(form, [{method, "POST"}, {action, "/blog/new"}], [
-                    el(input, [{name, "title"}]),
+                    el(input, [{name, "title"}, required]),
                     el(br),
                     el(button, [{type, "submit"}], [<<"Submit">>])
                 ]),

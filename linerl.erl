@@ -28,6 +28,11 @@ attrs_str(Attrs) ->
     attrs_str(Attrs, <<>>).
 attrs_str([], Str) ->
     Str;
+attrs_str([Key | T], Str) when is_atom(Key) ->
+    Key1 = atom_to_binary(Key),
+    Attr = <<"\s", Key1/binary >>,
+    NewStr = <<Str/binary, Attr/binary>>,
+    attrs_str(T, NewStr);
 attrs_str([{Key, Val} | T], Str) ->
     Key1 = atom_to_binary(Key),
     Val1 = case Val of
@@ -37,7 +42,7 @@ attrs_str([{Key, Val} | T], Str) ->
         N when is_float(N) -> float_to_binary(Val);
         _ -> Val
     end,
-    Attr = <<"\s", Key1/binary, "=\"", Val1/binary, "\"">>,
+    Attr = <<"\s", Key1/binary, "=\"", Val1/binary, "\"">>, %todo: fix to iolist
     NewStr = <<Str/binary, Attr/binary>>,
     attrs_str(T, NewStr).
 
@@ -128,7 +133,7 @@ test() ->
                     lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List)
                 ),
                 el(form, [{method, "POST"}, {action, "/blog/new"}], [
-                    el(input, [{name, "title"}]),
+                    el(input, [{name, "title"}, required]),
                     el(br),
                     el(button, [{type, "submit"}], [<<"Submit">>])
                 ]),
