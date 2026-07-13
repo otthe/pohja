@@ -25,13 +25,13 @@ html_body(Body) ->
     ["<body>", Body, "</body>"].
 
 attrs_str(Attrs) ->
-    attrs_str(Attrs, <<>>).
+    attrs_str(Attrs, []).
 attrs_str([], Str) ->
     Str;
 attrs_str([Key | T], Str) when is_atom(Key) ->
     Key1 = atom_to_binary(Key),
-    Attr = <<"\s", Key1/binary >>,
-    NewStr = <<Str/binary, Attr/binary>>,
+    Attr = ["\s", Key1],
+    NewStr = [Str, Attr],
     attrs_str(T, NewStr);
 attrs_str([{Key, Val} | T], Str) ->
     Key1 = atom_to_binary(Key),
@@ -42,8 +42,8 @@ attrs_str([{Key, Val} | T], Str) ->
         N when is_float(N) -> float_to_binary(Val);
         _ -> Val
     end,
-    Attr = <<"\s", Key1/binary, "=\"", Val1/binary, "\"">>, %todo: fix to iolist
-    NewStr = <<Str/binary, Attr/binary>>,
+    Attr = ["\s", Key1, "=\"", Val1, "\""], %todo: fix to iolist
+    NewStr = [Str, Attr],
     attrs_str(T, NewStr).
 
 tag_to_bin(Tag) ->
@@ -116,7 +116,7 @@ test() ->
         {2,"Blog Post 2"},
         {3,"Blog Post 3"}
     ],
-    IsAdmin = true,
+    IsAdmin = false,
     Output = 
     html(
         [
