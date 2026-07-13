@@ -1,6 +1,23 @@
--module(pohja_test).
--export([bench/1, test/0]).
+-module(pohja_tests).
+-include_lib("eunit/include/eunit.hrl").
+-export([bench/1, generate/0]).
 -import(pohja, [html/2, el/3, el/2, el/1, esc/1]).
+%run: eunit:test(pohja).
+
+c(El) ->
+    iolist_to_binary(El).
+
+el_1_test() ->
+    ?assertEqual(<<"<br>">>, c(el(br))),
+    ?assertEqual(<<"<hr>">>, c(el(hr))),
+    ?assertEqual(<<"<test1>">>, c(el(list_to_atom("test1")))),
+    ?assertError(badarg, el("test")).
+
+el_2_test() ->
+    El =c(el(input, [{type, "text"}, required])),
+    io:format("~p~n", [El]),
+    ?assertEqual(<<"<input type=\"text\" required>">>, El).
+
 bench(N) ->
     {Time, _} =
         timer:tc(
@@ -17,7 +34,7 @@ bench(N) ->
     io:format("~p us total~n", [Time]),
     io:format("~p us/op~n", [Time / N]).
 
-test() ->
+generate() ->
     List = [
         {1,"Blog Post 1"},
         {2,"Blog Post 2"},
@@ -56,4 +73,4 @@ test() ->
             el(script, [{src, "index.js"}, {type, module}], [])
         ]
     ),    
-    file:write_file("dump2.html", Output).
+    file:write_file("dump.html", Output).
