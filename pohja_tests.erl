@@ -41,34 +41,35 @@ generate() ->
     ],
     IsAdmin = false,
     Output = 
-    html(
-        [
-            el(meta, [{version, 7}]),
-            el(title, [], <<"My Blog!">>)
-        ],
-        [
-            % for div-element use 'd', 'dv' or 'div_' atom, this is because
-            % 'div' is reserved word in erlang and causes syntax error
-            el(d, [{class, container}], [
-                el(h1, [], ["My Blog!"]),
-                el(hr),
-                el(br),
-                el(ul, [], 
-                    lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List)
-                ),
-                el(form, [{method, "POST"}, {action, "/blog/new"}], [
-                    el(input, [{name, "title"}]), %, required
+        html(
+            [
+                el(meta, [{version, 7}]),
+                el(title, [], <<"My Blog!">>)
+            ],
+            [
+                % for div-element use 'd', 'dv' or 'div_' atom, this is because
+                % 'div' is reserved word in erlang and causes syntax error
+                el(d, [{class, container}], [
+                    el(h1, [], ["My Blog!"]),
+                    el(hr),
                     el(br),
-                    el(button, [{type, "submit"}], [<<"Submit">>])
+                    el(ul, [], 
+                        lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List)
+                    ),
+                    el(form, [{method, "POST"}, {action, "/blog/new"}], [
+                        el(input, [{name, "title"}]), %, required
+                        el(br),
+                        el(button, [{type, "submit"}], [<<"Submit">>])
+                    ]),
+                    el(p, [], [esc("<script>alert(\"I am evil script!\")</script>")]),
+                    case IsAdmin of
+                        true ->
+                            el(p, [], "This user is admin");
+                        false ->
+                            el(p, [], "This user is not admin!")
+                    end
                 ]),
-                el(p, [], [esc("<script>alert(\"I am evil script!\")</script>")]),
-                case IsAdmin of
-                    true ->
-                        el(p, [], "This user is admin");
-                    false ->
-                        el(p, [], "This user is not admin!")
-                end
-            ]),
-            el(script, [{src, "index.js"}, {type, module}], [])
-        ]
-    ).
+                el(script, [{src, "index.js"}, {type, module}], [])
+            ]
+        ),
+    byte_size(iolist_to_binary(Output)).
