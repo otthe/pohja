@@ -37,3 +37,28 @@
         ]
     ).
 ```
+### Benchmark on example template:
+```bash
+start_benchmark
+13> pohja_tests:bench(10000).
+113983 us total
+11.3983 us/op
+ok
+14> pohja_tests:bench(10000).
+119034 us total
+11.9034 us/op
+ok
+15> pohja_tests:bench(10000).
+125880 us total
+12.588 us/op
+ok
+16> pohja_tests:bench(10000).
+123471 us total
+12.3471 us/op
+ok
+17> pohja_tests:bench(10000).
+116512 us total
+11.6512 us/op
+
+AVG: ~12 microseconds
+```

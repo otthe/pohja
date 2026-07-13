@@ -15,7 +15,6 @@ el_1_test() ->
 
 el_2_test() ->
     El =c(el(input, [{type, "text"}, required])),
-    io:format("~p~n", [El]),
     ?assertEqual(<<"<input type=\"text\" required>">>, El).
 
 bench(N) ->
@@ -24,7 +23,7 @@ bench(N) ->
             fun() ->
                 lists:foreach(
                     fun(_) ->
-                        test()
+                        generate()
                     end,
                     lists:seq(1, N)
                 )
@@ -72,5 +71,4 @@ generate() ->
             ]),
             el(script, [{src, "index.js"}, {type, module}], [])
         ]
-    ),    
-    file:write_file("dump.html", Output).
+    ).
