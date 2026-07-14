@@ -1,11 +1,40 @@
 -module(pohja_tests).
 -include_lib("eunit/include/eunit.hrl").
--export([bench/1, generate/0]).
+-export([bench/1]).
 -import(pohja, [html/2, el/3, el/2, el/1, esc/1]).
 %run: eunit:test(pohja).
 
 c(El) ->
     iolist_to_binary(El).
+
+nested() ->
+    List = [
+        {1,"Blog Post 1"},
+        {2,"Blog Post 2"},
+        {3,"Blog Post 3"}
+    ],
+    c(el(ul, [], lists:map(fun({Id, Title}) -> el(li, [{id, Id}], [Title]) end, List))).
+nested_nested() ->
+    List = [
+        {1,"Blog Post 1"},
+        {2,"Blog Post 2"},
+        {3,"Blog Post 3"}
+    ],
+    c(
+        el(ul, [], lists:map(
+            fun({Id, Title}) ->
+                el(li, [{id, Id}], [
+                    Title,
+                    el(ul, [], [
+                        el(li, [], ["Child 1"]),
+                        el(li, [], ["Child 2"])
+                    ])
+                ])
+            end,
+            List
+        ))
+    ).
+
 
 el_1_test() ->
     ?assertEqual(<<"<br>">>, c(el(br))),
@@ -27,18 +56,24 @@ el_2_test() ->
     ?assertError(badarg, c(el(input, [{type, {asd}}, required]))).
 
 el_3_test() ->
-    % different data types vals, do this also in el_2
-    hello.
+    NestedOutput = <<"<ul><li id=\"1\">Blog Post 1</li><li id=\"2\">Blog Post 2</li><li id=\"3\">Blog Post 3</li></ul>">>,
+    NestedNestedOutput = <<"<ul><li id=\"1\">Blog Post 1<ul><li>Child 1</li><li>Child 2</li></ul></li><li id=\"2\">Blog Post 2<ul><li>Child 1</li><li>Child 2</li></ul></li><li id=\"3\">Blog Post 3<ul><li>Child 1</li><li>Child 2</li></ul></li></ul>">>,
+    ?assertEqual(NestedOutput, nested()),          
+    ?assertEqual(NestedNestedOutput, nested_nested()).
 
 esc_test() ->
-    %test for bins
-    % test for strings
-    hello.
+    EscapedOutput = <<"<p>&lt;script&gt;alert(&quot;I am evil script!&quot;)&lt;/script&gt;</p>">>,
+    StrInput = "<script>alert(\"I am evil script!\")</script>",
+    BinInput = <<"<script>alert(\"I am evil script!\")</script>">>,
+    ?assertEqual(EscapedOutput, c(el(p, [], [esc(StrInput)]))),
+    ?assertEqual(EscapedOutput, c(el(p, [], [esc(BinInput)]))),
+    ?assertEqual(<<"<p></p>">>, c(el(p, [], [esc("")]))),
+    ?assertEqual(<<"<p></p>">>, c(el(p, [], [esc([])]))),
+    ?assertException(error, {bad_generator, {}}, c(el(p, [], [esc({})]))).
 
 html_test() ->
-    %with empty arrays
-    %with body, head defined
-    hello.
+    Scaffold = <<"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"></head><body></body></html>">>,
+    ?assertEqual(Scaffold, c(html([], []))).
 
 bench(N) ->
     {Time, _} =
