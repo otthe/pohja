@@ -1,4 +1,4 @@
-### Example:
+## Example:
 ```erlang
     List = [
         {1,"Blog Post 1"},
@@ -37,6 +37,23 @@
         ]
     ).
 ```
+
+## Docs:
+Notice that the `html/2` - converts the generated `iolist` to `<<binary>>` format automatically. By default `el/1`, `el/2` and `el/3` returns `iolist` so you have to manually convert those to `<<binary>>` format if you are calling those functions outside `html/2`.
+
+If you want to define `<div>` -elements in `el -functions`, you must use atoms `d`, `dv` or `div_` - this is because `div` is reserved word in erlang.
+
+|Function|Example    |
+|--------|-----------|
+|html/2  |`html(HeadList, BodyList)`|
+|el/1    |`el(br)`|
+|el/2    |`el(input, [{name, "title"}, required])`|
+|el/3    |`el(h1, [], ["Some title!"])`|
+|esc/1   |`esc("<script>alert(\"I am evil script!\")</script>")`|
+
+
+
+
 ### Benchmark on example template:
 ```bash
 start_benchmark

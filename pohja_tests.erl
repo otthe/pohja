@@ -35,7 +35,6 @@ nested_nested() ->
         ))
     ).
 
-
 el_1_test() ->
     ?assertEqual(<<"<br>">>, c(el(br))),
     ?assertEqual(<<"<hr>">>, c(el(hr))),
