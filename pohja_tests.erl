@@ -75,6 +75,10 @@ html_test() ->
     Scaffold = <<"<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"></head><body></body></html>">>,
     ?assertEqual(Scaffold, c(html([], []))).
 
+char_encoding_test() ->
+    Output = <<"<test value=\"RäöåH1-?+\">Tämä sisältää ääkkösiä ja öökkösiå</test>"/utf8>>,
+    ?assertEqual(Output, c(el(test, [{value, "RäöåH1-?+"}], ["Tämä sisältää ääkkösiä ja öökkösiå"]))).
+
 bench(N) ->
     {Time, _} =
         timer:tc(
