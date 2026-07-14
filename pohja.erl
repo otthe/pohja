@@ -1,5 +1,6 @@
 -module(pohja).
 -export([esc/1, html/2, el/1, el/2, el/3]).
+
 %https://ssojet.com/escaping/html-escaping-in-erlang#escaping-html-special-characters
 esc(Str) when is_binary(Str) ->
     unicode:characters_to_binary(
@@ -42,7 +43,7 @@ attrs_str([{Key, Val} | T], Str) ->
         N when is_integer(N) -> integer_to_binary(Val);
         N when is_atom(N) -> atom_to_binary(Val);
         N when is_list(N) -> unicode:characters_to_binary(Val);
-        N when is_float(N) -> float_to_binary(Val);
+        N when is_float(N) -> float_to_binary(Val, [short]);
         _ -> Val
     end,
     Attr = ["\s", Key1, "=\"", Val1, "\""],

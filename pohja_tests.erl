@@ -14,8 +14,31 @@ el_1_test() ->
     ?assertError(badarg, el("test")).
 
 el_2_test() ->
-    El =c(el(input, [{type, "text"}, required])),
-    ?assertEqual(<<"<input type=\"text\" required>">>, El).
+    Output = <<"<input type=\"text\" required>">>,
+    Output2 = <<"<input type=\"1\" required>">>,
+    Output3 = <<"<input type=\"1.53\" required>">>,
+    ?assertEqual(Output, c(el(input, [{type, "text"}, required]))),
+    ?assertEqual(Output, c(el(input, [{type, text}, required]))),
+    ?assertEqual(Output, c(el(input, [{type, ["text"]}, required]))),
+    ?assertEqual(Output, c(el(input, [{type, <<"text">>}, required]))),
+    ?assertEqual(Output, c(el(input, [{type, [[<<"text">>]]}, required]))),
+    ?assertEqual(Output2, c(el(input, [{type, 1}, required]))),
+    ?assertEqual(Output3, c(el(input, [{type, 1.53}, required]))),
+    ?assertError(badarg, c(el(input, [{type, {asd}}, required]))).
+
+el_3_test() ->
+    % different data types vals, do this also in el_2
+    hello.
+
+esc_test() ->
+    %test for bins
+    % test for strings
+    hello.
+
+html_test() ->
+    %with empty arrays
+    %with body, head defined
+    hello.
 
 bench(N) ->
     {Time, _} =
